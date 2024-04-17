@@ -1,0 +1,1 @@
+../../../TEMPLATE/spk1/local/path.sh
