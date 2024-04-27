@@ -8,8 +8,6 @@ stop_stage=3
 
 n_proc=8
 
-data_dir_prefix=
-#tts="/mnt/z/Datensätze/BSI/BSI-Dataset/Genuine_libritts"
 tts="/mnt/z/Datensätze/Light"
 deepfakes=""
 
@@ -26,13 +24,7 @@ log() {
     echo -e "$(date '+%Y-%m-%dT%H:%M:%S') (${fname}:${BASH_LINENO[0]}:${FUNCNAME[1]}) $*"
 }
 
-if [ -z ${data_dir_prefix} ]; then
-    log "Root dir for dataset not defined, setting to ${MAIN_ROOT}/egs2/bsi_deepfakes/data"
-    data_dir_prefix=${MAIN_ROOT}/egs2/bsi_deepfakes/spk1/data
-else
-    log "Root dir set to ${BSI_DEEPFAKE}"
-    data_dir_prefix=${BSI_DEEPFAKE}
-fi
+data_dir_prefix=${MAIN_ROOT}/egs2/bsi_deepfakes/spk1/data
 
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     log "Stage 1: Add symlinks"
@@ -41,6 +33,7 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     if [ ! -d "${data_dir_prefix}/genuine" ]; then
         log "Adding symlinks for genuine data."
         python local/data_copy.py --src "${tts}" --dst "${data_dir_prefix}/genuine"
+        cp "${tts}"/veri.txt "${data_dir_prefix}/genuine/"
     else
        log "Skip adding symlinks for genuine."
     fi
@@ -100,13 +93,14 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
     done
 
     # TODO
-    mkdir -p ${trg_dir}/bsi_valid
+    mkdir -p ${trg_dir}/bsi_test
     for f in wav.scp utt2spk spk2utt; do
-        sort ${trg_dir}/genuine/${f} -o ${trg_dir}/bsi_valid/${f}
+        sort ${trg_dir}/genuine/${f} -o ${trg_dir}/bsi_test/${f}
     done
 
     # make test trial compatible with ESPnet.
-    python local/convert_trial.py --trial ${data_dir_prefix}/veri.txt --scp ${trg_dir}/genuine/wav.scp --out ${trg_dir}/genuine
+    python local/create_veri.py --src ${data_dir_prefix}/genuine --dst ${data_dir_prefix}/genuine/veri.txt 
+    python local/convert_trial.py --trial ${data_dir_prefix}/genuine/veri.txt --scp ${trg_dir}/genuine/wav.scp --out ${trg_dir}/bsi_test
 
     log "Stage 3, DONE."
 

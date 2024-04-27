@@ -6,8 +6,6 @@ import sys
 def main(args):
     src = args.src
     dst = args.dst
-    print(src)
-    print(dst)
 
     # Walk through the source directory
     for root, dirs, files in os.walk(src):
@@ -29,11 +27,9 @@ def main(args):
                 
                 # Create a symbolic link pointing to the source file
                 os.symlink(src_file, dst_file)
-                print(f"Created symlink: {dst_file} -> {src_file}")
 
 
 if __name__ == "__main__":
-    print("res")
     parser = argparse.ArgumentParser(description="BSI copy tool")
     parser.add_argument(
         "--src",
