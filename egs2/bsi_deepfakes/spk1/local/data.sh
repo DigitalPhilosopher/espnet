@@ -8,8 +8,7 @@ stop_stage=3
 
 n_proc=8
 
-tts="/mnt/z/Datensätze/Light"
-deepfakes=""
+create_label_files=0
 
 trg_dir=data
 
@@ -29,7 +28,13 @@ data_dir_prefix=${MAIN_ROOT}/egs2/bsi_deepfakes/spk1/data
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     log "Stage 1: Add symlinks"
 
-    # If genuine exists, skip
+    if [ $create_label_files -eq 1 ]; then
+        log "Creating label files for bsi dataset. This is a long process and can take about 1 hour to generate."
+        python ${BSI_DEEPFAKE}/extraction_utils/get_label_files.py
+    else
+        log "Skip creating label files for bsi dataset."
+    fi
+
     if [ ! -d "${data_dir_prefix}/genuine" ]; then
         log "Adding symlinks for genuine data."
         python local/data_copy.py --src "${tts}" --dst "${data_dir_prefix}/genuine"
