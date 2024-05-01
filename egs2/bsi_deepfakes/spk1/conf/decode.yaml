@@ -1,14 +1,14 @@
 # embedding extraction
 num_workers: 4
-valid_batch_size: 5
+valid_batch_size: 2
 target_duration: 6.0  # seconds
 num_eval: 3
 
 # score norm
-num_cohort_spk: 1211
-num_utt_per_spk: 50
+num_cohort_spk: 14
+num_utt_per_spk: 15
 utt_select_sec: 0
-adaptive_cohort_size: 500
+adaptive_cohort_size: 5
 average_spk: false
 
 # quality measure function

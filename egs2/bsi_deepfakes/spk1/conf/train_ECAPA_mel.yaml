@@ -54,7 +54,7 @@ loss_conf:
   k_top: 5
 
 # Training related
-max_epoch: 25
+max_epoch: 2
 num_iters_per_epoch: 1
 num_att_plot: 0
 num_workers: 6
