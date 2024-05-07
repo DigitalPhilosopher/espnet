@@ -7,8 +7,8 @@ set -o pipefail
 spk_config=conf/train_ECAPA_mel.yaml
 
 train_set="bsi_train"
-valid_set="bsi_test"
-cohort_set="bsi_test"
+valid_set="bsi_valid"
+cohort_set="bsi_valid"
 test_sets="bsi_test"
 feats_type="raw"
 

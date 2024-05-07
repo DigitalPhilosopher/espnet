@@ -9,6 +9,10 @@ stop_stage=3
 n_proc=8
 
 create_label_files=0
+train_set=
+test_sets=
+valid_set=
+cohort_set=
 
 trg_dir=data
 
@@ -29,18 +33,38 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     log "Stage 1: Add symlinks"
 
     if [ $create_label_files -eq 1 ]; then
-        log "Creating label files for bsi dataset. This is a long process and can take about 1 hour to generate."
+        log "Creating label files for bsi dataset. This is a long process and can take about 1.5 hours to generate."
         python ${BSI_DEEPFAKE}/extraction_utils/get_label_files.py
     else
         log "Skip creating label files for bsi dataset."
     fi
 
-    if [ ! -d "${data_dir_prefix}/genuine" ]; then
-        log "Adding symlinks for genuine data."
-        python local/data_copy.py --src "${tts}" --dst "${data_dir_prefix}/genuine"
-        cp "${tts}"/veri.txt "${data_dir_prefix}/genuine/"
+    if [ ! -d "${data_dir_prefix}/${train_set}" ]; then
+        log "Adding symlinks for train data."
+        python local/data_copy.py --src "${BSI_DEEPFAKE}" --dst "${data_dir_prefix}" --train ${train_set}
     else
-       log "Skip adding symlinks for genuine."
+       log "Skip adding symlinks for train data."
+    fi
+
+    if [ ! -d "${data_dir_prefix}/${test_sets}" ]; then
+        log "Adding symlinks for test data."
+        python local/data_copy.py --src "${BSI_DEEPFAKE}" --dst "${data_dir_prefix}" --test ${test_sets}
+    else
+       log "Skip adding symlinks for test data."
+    fi
+
+    if [ ! -d "${data_dir_prefix}/${valid_set}" ]; then
+        log "Adding symlinks for valid data."
+        python local/data_copy.py --src "${BSI_DEEPFAKE}" --dst "${data_dir_prefix}" --valid ${valid_set}
+    else
+       log "Skip adding symlinks for valid data."
+    fi
+
+    if [ ! -d "${data_dir_prefix}/${cohort_set}" ]; then
+        log "Adding symlinks for cohort data."
+        python local/data_copy.py --src "${BSI_DEEPFAKE}" --dst "${data_dir_prefix}" --cohort ${cohort_set}
+    else
+       log "Skip adding symlinks for cohort data."
     fi
 
     log "Stage 1, DONE."
@@ -89,23 +113,24 @@ fi
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
     log "Stage 3, Change into kaldi-style feature."
-    mkdir -p ${trg_dir}/genuine
-    python local/data_prep.py --src "${data_dir_prefix}/genuine" --dst "${trg_dir}/genuine"
+    python local/data_prep.py --src "${data_dir_prefix}/${train_set}" --dst "${data_dir_prefix}/${train_set}"
+    python local/data_prep.py --src "${data_dir_prefix}/${test_sets}" --dst "${data_dir_prefix}/${test_sets}"
+    python local/data_prep.py --src "${data_dir_prefix}/${valid_set}" --dst "${data_dir_prefix}/${valid_set}"
+    python local/data_prep.py --src "${data_dir_prefix}/${cohort_set}" --dst "${data_dir_prefix}/${cohort_set}"
 
-    mkdir -p ${trg_dir}/bsi_train
+    log "Sorting."
     for f in wav.scp utt2spk spk2utt; do
-        sort ${trg_dir}/genuine/${f} -o ${trg_dir}/bsi_train/${f}
+        sort ${data_dir_prefix}/${train_set}/${f} -o ${data_dir_prefix}/${train_set}/${f}
+        sort ${data_dir_prefix}/${test_sets}/${f} -o ${data_dir_prefix}/${test_sets}/${f}
+        sort ${data_dir_prefix}/${cohort_set}/${f} -o ${data_dir_prefix}/${cohort_set}/${f}
+        sort ${data_dir_prefix}/${valid_set}/${f} -o ${data_dir_prefix}/${valid_set}/${f}
     done
 
-    # TODO
-    mkdir -p ${trg_dir}/bsi_test
-    for f in wav.scp utt2spk spk2utt; do
-        sort ${trg_dir}/genuine/${f} -o ${trg_dir}/bsi_test/${f}
-    done
-
-    # make test trial compatible with ESPnet.
-    python local/create_veri.py --src ${data_dir_prefix}/genuine --dst ${data_dir_prefix}/genuine/veri.txt 
-    python local/convert_trial.py --trial ${data_dir_prefix}/genuine/veri.txt --scp ${trg_dir}/genuine/wav.scp --out ${trg_dir}/bsi_test
+    log "Create veri txt."
+    python local/create_veri.py --src ${data_dir_prefix}/${train_set} --dst ${data_dir_prefix}/${train_set}/veri.txt --picks 2 --random_picks 2
+    python local/create_veri.py --src ${data_dir_prefix}/${test_sets} --dst ${data_dir_prefix}/${test_sets}/veri.txt --picks 2 --random_picks 2
+    log "Make test trial compatible with ESPnet."
+    python local/convert_trial.py --trial ${data_dir_prefix}/${test_sets}/veri.txt --scp ${data_dir_prefix}/${test_sets}/wav.scp --out ${data_dir_prefix}/${test_sets}
 
     log "Stage 3, DONE."
 

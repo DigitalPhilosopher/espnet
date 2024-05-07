@@ -208,7 +208,11 @@ log "Skipped stages: ${skip_stages}"
 if [ ${stage} -le 1  ] && [ ${stop_stage} -ge 1  ] && ! [[ " ${skip_stages} " =~ [[:space:]]1[[:space:]]  ]]; then
     log "Stage 1: Data preparation for train and evaluation."
     # [Task dependent] Need to create data.sh for new corpus
-    local/data.sh ${local_data_opts}
+    local/data.sh ${local_data_opts} \
+        --train_set ${train_set} \
+        --valid_set ${valid_set} \
+        --cohort_set ${cohort_set} \
+        --test_sets ${test_sets} \
     log "Stage 1 FIN."
 fi
 

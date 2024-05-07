@@ -12,10 +12,11 @@ def list_wav_files(directory):
                 path = root.split(os.sep)[-1]
                 if path not in wav_files:
                     wav_files[path] = []
-                wav_files[path].append(file.rstrip('.wav'))
+                base, extension = os.path.splitext(file)
+                wav_files[path].append(base)
     return wav_files
 
-def generate_combinations(wav_files, num_random_picks):
+def generate_combinations(wav_files, picks, num_random_picks):
     """Generate combinations of wav files."""
     output_lines = []
     paths = list(wav_files.keys())
@@ -23,9 +24,15 @@ def generate_combinations(wav_files, num_random_picks):
     for path in paths:
         files = wav_files[path]
         # Combinations within the same directory
+        break_outer_loop = False
         for i in range(len(files)):
+            if break_outer_loop:
+                break
             for j in range(i + 1, len(files)):
                 output_lines.append(f"1 {files[i]} {files[j]}")
+                if i * j > picks:
+                    break_outer_loop = True
+                    break
         
         # Random combinations from other directories
         other_files = []
@@ -53,7 +60,7 @@ def main(args):
     wav_files = list_wav_files(args.src)
     
     # Generate combinations
-    output_lines = generate_combinations(wav_files, args.random_picks)
+    output_lines = generate_combinations(wav_files, args.picks, args.random_picks)
     
     # Write to file
     write_output_file(output_lines, args.dst)
@@ -72,6 +79,12 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Destination file where data is written",
+    )
+    parser.add_argument(
+        "--picks",
+        type=int,
+        default=10,
+        help="Number of equal picks from the same speaker",
     )
     parser.add_argument(
         "--random_picks",

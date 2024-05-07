@@ -19,7 +19,7 @@ def main(args):
             utt_dir = os.path.join(r, f)
             utt_id = os.path.splitext(f)[0]
 
-            spk = utt_id.split('_')[0]
+            spk = utt_dir.split(os.sep)[-2]
             if spk not in spk2utt:
                 spk2utt[spk] = []
             spk2utt[spk].append(utt_id)

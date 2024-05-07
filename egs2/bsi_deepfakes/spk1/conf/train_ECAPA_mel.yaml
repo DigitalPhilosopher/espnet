@@ -54,7 +54,7 @@ loss_conf:
   k_top: 5
 
 # Training related
-max_epoch: 2
+max_epoch: 1
 num_iters_per_epoch: 1
 num_att_plot: 0
 num_workers: 6
@@ -65,8 +65,8 @@ iterator_type: category
 valid_iterator_type: sequence
 shuffle_within_batch: False
 log_interval: 100
-batch_size: 2
-valid_batch_size: 2
+batch_size: 15
+valid_batch_size: 15
 use_amp: True
 keep_nbest_models: 1
 grad_clip: 9999
