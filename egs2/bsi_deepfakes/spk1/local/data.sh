@@ -4,11 +4,13 @@ set -u
 set -o pipefail
 
 stage=1
-stop_stage=3
+stop_stage=4
 
 n_proc=8
 
+remove_corrupted=1
 create_label_files=0
+
 train_set=
 test_sets=
 valid_set=
@@ -71,7 +73,17 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
 fi
 
 if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
-    log "Stage 2: Download Musan and RIR_NOISES for augmentation."
+    log "Stage 2: Remove corrupted files"
+
+    if [ $remove_corrupted -eq 1 ]; then
+        python local/remove_corrupted.py --src "${data_dir_prefix}/${train_set}"
+    fi
+
+    log "Stage 2, DONE."
+fi
+
+if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
+    log "Stage 3: Download Musan and RIR_NOISES for augmentation."
 
     if [ ! -f ${data_dir_prefix}/rirs_noises.zip ]; then
         wget -P ${data_dir_prefix} -c http://www.openslr.org/resources/28/rirs_noises.zip
@@ -111,8 +123,8 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
     log "Stage 3, DONE."
 fi
 
-if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
-    log "Stage 3, Change into kaldi-style feature."
+if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
+    log "Stage 4, Change into kaldi-style feature."
     python local/data_prep.py --src "${data_dir_prefix}/${train_set}" --dst "${data_dir_prefix}/${train_set}"
     python local/data_prep.py --src "${data_dir_prefix}/${test_sets}" --dst "${data_dir_prefix}/${test_sets}"
     python local/data_prep.py --src "${data_dir_prefix}/${valid_set}" --dst "${data_dir_prefix}/${valid_set}"
@@ -132,7 +144,7 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
     log "Make test trial compatible with ESPnet."
     python local/convert_trial.py --trial ${data_dir_prefix}/${test_sets}/veri.txt --scp ${data_dir_prefix}/${test_sets}/wav.scp --out ${data_dir_prefix}/${test_sets}
 
-    log "Stage 3, DONE."
+    log "Stage 4, DONE."
 
 fi
 
