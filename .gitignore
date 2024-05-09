@@ -51,6 +51,8 @@ egs*/*/*/score*
 egs*/*/*/nltk*
 egs*/*/*/.cache*
 egs*/*/*/pretrained_models*
+egs*/*/*/hub*
+egs*/*/.venv*
 egs*/fisher_callhome_spanish/*/local/mapping*
 egs2/test/*
 
